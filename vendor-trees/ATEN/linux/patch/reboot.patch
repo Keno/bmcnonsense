@@ -1,0 +1,36 @@
+--- linux1/include/asm-arm/arch-wpcm450/system.h	2008-11-05 09:37:21.000000000 +0800
++++ linux2/include/asm-arm/arch-wpcm450/system.h	2009-09-15 17:49:18.000000000 +0800
+@@ -17,6 +17,7 @@
+ #include <asm/io.h>
+ #include <asm/arch/map.h>
+ #include <asm/arch/regs-clock.h>
++#include <asm/arch/regs-timer.h>
+ 
+ void (*wpcm450_idle)(void);
+ 
+@@ -60,19 +61,18 @@
+ 	if (mode == 's') {
+ 		cpu_reset(0);
+ 	}
+-#if 0//clyu
+ 	printk("arch_reset: attempting watchdog reset\n");
+-
+ 	__raw_writel(__raw_readl(WPCM450_WTCR) & ~WTCR_WTE, WPCM450_WTCR);	  /* disable watchdog, to be safe  */
+-
++	
++	
+ 	/* put initial values into count and data */
+-	__raw_writel(_raw_readl(WPCM450_WTCR) & ~WTCR_WTIS | WPCM450_WTCR2, WPCM450_WTCR);
++	__raw_writel(__raw_readl(WPCM450_WTCR) & ~WTCR_WTIS |  (WTIS2 | WTCR_WTIE | WTCR_WTE |WTCR_WTRE), WPCM450_WTCR);
+ 
+ 	/* set the watchdog to go and reset... */
+-	__raw_writel(WTCR_WTR, WPCM450_WTCR);
+-
++	__raw_writel(WTCR_WTR | __raw_readl(WPCM450_WTCR) , WPCM450_WTCR);
++	
+ 	printk(KERN_ERR "Watchdog reset failed to assert reset\n");
+-#endif
++
+ 	/* we'll take a jump through zero as a poor second */
+ 	cpu_reset(0);
+ }

@@ -1,0 +1,334 @@
+diff -Naur u-boot-1.1.4/common/cmd_bootm.c u-boot-1.1.4-SE/common/cmd_bootm.c
+--- u-boot-1.1.4/common/cmd_bootm.c	2005-12-16 11:39:27.000000000 -0500
++++ u-boot-1.1.4-SE/common/cmd_bootm.c	2007-01-24 15:16:28.000000000 -0500
+@@ -174,6 +174,11 @@
+ 		read_dataflash(addr, sizeof(image_header_t), (char *)&header);
+ 	} else
+ #endif
++#ifdef CONFIG_HAS_SPI
++	if (addr_spi(addr)){
++		flash_read(addr, sizeof(image_header_t), (char *)&header);
++	} else
++#endif
+ 	memmove (&header, (char *)addr, sizeof(image_header_t));
+ 
+ 	if (ntohl(hdr->ih_magic) != IH_MAGIC) {
+@@ -215,6 +220,13 @@
+ 		addr = CFG_LOAD_ADDR;
+ 	}
+ #endif
++#ifdef CONFIG_HAS_SPI
++	if (addr_spi(addr)){
++		len  = ntohl(hdr->ih_size) + sizeof(image_header_t);
++		flash_read(addr, len, (char *)CFG_LOAD_ADDR);
++		addr = CFG_LOAD_ADDR;
++	}
++#endif
+ 
+ 
+ 	/* for multi-file images we need the data part, too */
+@@ -779,6 +791,11 @@
+ 			}
+ 		}
+ #else	/* !(CONFIG_HW_WATCHDOG || CONFIG_WATCHDOG) */
++#ifdef CONFIG_HAS_SPI
++	if (addr_spi(addr)){
++		flash_read(data,len, (char *)initrd_start);
++	} else
++#endif
+ 		memmove ((void *)initrd_start, (void *)data, len);
+ #endif	/* CONFIG_HW_WATCHDOG || CONFIG_WATCHDOG */
+ 		puts ("OK\n");
+diff -Naur u-boot-1.1.4/common/cmd_flash.c u-boot-1.1.4-SE/common/cmd_flash.c
+--- u-boot-1.1.4/common/cmd_flash.c	2005-12-16 11:39:27.000000000 -0500
++++ u-boot-1.1.4-SE/common/cmd_flash.c	2007-01-24 10:30:53.000000000 -0500
+@@ -324,7 +324,7 @@
+ 
+ 	if (strcmp(argv[1], "all") == 0) {
+ 		for (bank=1; bank<=CFG_MAX_FLASH_BANKS; ++bank) {
+-			printf ("Erase Flash Bank # %ld ", bank);
++			printf ("Erase Flash Bank # %ld \n", bank);
+ 			info = &flash_info[bank-1];
+ 			rcode = flash_erase (info, 0, info->sector_count-1);
+ 		}
+@@ -336,7 +336,7 @@
+ 			puts ("Bad sector specification\n");
+ 			return 1;
+ 		}
+-		printf ("Erase Flash Sectors %d-%d in Bank # %d ",
++		printf ("Erase Flash Sectors %d-%d in Bank # %d \n",
+ 			sect_first, sect_last, (info-flash_info)+1);
+ 		rcode = flash_erase(info, sect_first, sect_last);
+ 		return rcode;
+diff -Naur u-boot-1.1.4/common/cmd_mem.c u-boot-1.1.4-SE/common/cmd_mem.c
+--- u-boot-1.1.4/common/cmd_mem.c	2005-12-16 11:39:27.000000000 -0500
++++ u-boot-1.1.4-SE/common/cmd_mem.c	2007-01-24 15:18:49.000000000 -0500
+@@ -36,6 +36,34 @@
+ #include <dataflash.h>
+ #endif
+ 
++#ifdef CONFIG_HAS_SPI
++void spi_perror (int err)
++{
++	switch (err) {
++	case ERR_OK:
++		break;
++	case ERR_TIMOUT:
++		printf ("Timeout writing to DataFlash\n");
++		break;
++	case ERR_PROTECTED:
++		printf ("Can't write to protected DataFlash sectors\n");
++		break;
++	case ERR_INVAL:
++		printf ("Outside available DataFlash\n");
++		break;
++	case ERR_UNKNOWN_FLASH_TYPE:
++		printf ("Unknown Type of DataFlash\n");
++		break;
++	case ERR_PROG_ERROR:
++		printf ("General DataFlash Programming Error\n");
++		break;
++	default:
++		printf ("%s[%d] FIXME: rc=%d\n", __FILE__, __LINE__, err);
++		break;
++	}
++}
++#endif
++
+ #if (CONFIG_COMMANDS & (CFG_CMD_MEMORY	| \
+ 			CFG_CMD_I2C	| \
+ 			CFG_CMD_ITEST	| \
+@@ -142,6 +170,9 @@
+ #ifdef CONFIG_HAS_DATAFLASH
+ 		int rc;
+ #endif
++#ifdef CONFIG_HAS_SPI
++		int rc;
++#endif
+ 		printf("%08lx:", addr);
+ 		linebytes = (nbytes>DISP_LINE_LEN)?DISP_LINE_LEN:nbytes;
+ 
+@@ -165,6 +196,26 @@
+ 
+ 		} else {	/* addr does not correspond to DataFlash */
+ #endif
++#ifdef CONFIG_HAS_SPI
++		if ((rc = flash_read(addr, (linebytes/size)*size, linebuf)) == ERR_OK){
++			/* if outside dataflash */
++			/*if (rc != 1) {
++				spi_perror (rc);
++				return (1);
++			}*/
++			for (i=0; i<linebytes; i+= size) {
++				if (size == 4) {
++					printf(" %08x", *uip++);
++				} else if (size == 2) {
++					printf(" %04x", *usp++);
++				} else {
++					printf(" %02x", *ucp++);
++				}
++				addr += size;
++			}
++
++		} else {	/* addr does not correspond to SPI */
++#endif
+ 		for (i=0; i<linebytes; i+= size) {
+ 			if (size == 4) {
+ 				printf(" %08x", (*uip++ = *((uint *)addr)));
+@@ -178,6 +229,9 @@
+ #ifdef CONFIG_HAS_DATAFLASH
+ 		}
+ #endif
++#ifdef CONFIG_HAS_SPI
++		}
++#endif
+ 		puts ("    ");
+ 		cp = (u_char *)linebuf;
+ 		for (i=0; i<linebytes; i++) {
+@@ -343,6 +397,12 @@
+ 		return 0;
+ 	}
+ #endif
++#ifdef CONFIG_HAS_SPI
++	if (addr_spi(addr1) | addr_spi(addr2)){
++		puts ("Comparison with SPI space not supported.\n\r");
++		return 0;
++	}
++#endif
+ 
+ 	ngood = 0;
+ 
+@@ -425,6 +485,9 @@
+ #ifdef CONFIG_HAS_DATAFLASH
+ 	   && (!addr_dataflash(addr))
+ #endif
++#ifdef CONFIG_HAS_SPI
++	   && (!addr_spi(addr))
++#endif
+ 	   ) {
+ 		int rc;
+ 
+@@ -513,6 +576,39 @@
+ 		return 1;
+ 	}
+ #endif
++#ifdef CONFIG_HAS_SPI
++	/* Check if we are copying from RAM or Flash to DataFlash */
++	if (addr_spi(dest) && !addr_spi(addr)){
++		int rc;
++
++		puts ("Copy to spi... ");
++
++		rc = flash_write ((char *)addr,dest,count*size);
++
++		if (rc != 1) {
++			spi_perror (rc);
++			return (1);
++		}
++		puts ("done\n");
++		return 0;
++	}
++
++	/* Check if we are copying from DataFlash to RAM */
++	if (addr_spi(addr) && !addr_spi(dest) && (addr2info(dest)==NULL) ){
++		int rc;
++		rc = flash_read(addr, count * size, (char *) dest);
++		if (rc != 1) {
++			spi_perror (rc);
++			return (1);
++		}
++		return 0;
++	}
++
++	if (addr_spi(addr) && addr_spi(dest)){
++		puts ("Unsupported combination of source/destination.\n\r");
++		return 1;
++	}
++#endif
+ 
+ 	while (count-- > 0) {
+ 		if (size == 4)
+@@ -1041,6 +1137,12 @@
+ 		return 0;
+ 	}
+ #endif
++#ifdef CONFIG_HAS_SPI
++	if (addr_spi(addr)){
++		puts ("Can't modify SPI in place. Use cp instead.\n\r");
++		return 0;
++	}
++#endif
+ 
+ 	/* Print the address, followed by value.  Then accept input for
+ 	 * the next value.  A non-converted value exits.
+diff -Naur u-boot-1.1.4/common/cmd_nvedit.c u-boot-1.1.4-SE/common/cmd_nvedit.c
+--- u-boot-1.1.4/common/cmd_nvedit.c	2005-12-16 11:39:27.000000000 -0500
++++ u-boot-1.1.4-SE/common/cmd_nvedit.c	2007-01-23 16:25:18.000000000 -0500
+@@ -54,9 +54,10 @@
+     !defined(CFG_ENV_IS_IN_EEPROM)	&& \
+     !defined(CFG_ENV_IS_IN_FLASH)	&& \
+     !defined(CFG_ENV_IS_IN_DATAFLASH)	&& \
++    !defined(CFG_ENV_IS_IN_SPI)		&& \
+     !defined(CFG_ENV_IS_IN_NAND)	&& \
+     !defined(CFG_ENV_IS_NOWHERE)
+-# error Define one of CFG_ENV_IS_IN_{NVRAM|EEPROM|FLASH|DATAFLASH|NOWHERE}
++# error Define one of CFG_ENV_IS_IN_{NVRAM|EEPROM|FLASH|DATAFLASH|NOWHERE|SPI}
+ #endif
+ 
+ #define XMK_STR(x)	#x
+diff -Naur u-boot-1.1.4/common/Makefile u-boot-1.1.4-SE/common/Makefile
+--- u-boot-1.1.4/common/Makefile	2007-01-24 14:31:17.000000000 -0500
++++ u-boot-1.1.4-SE/common/Makefile	2007-01-23 16:25:34.000000000 -0500
+@@ -43,7 +43,7 @@
+ 	  cmd_usb.o cmd_vfd.o \
+ 	  command.o console.o devices.o dlmalloc.o docecc.o \
+ 	  environment.o env_common.o \
+-	  env_nand.o env_dataflash.o env_flash.o env_eeprom.o \
++	  env_nand.o env_dataflash.o env_spi.o env_flash.o env_eeprom.o \
+ 	  env_nvram.o env_nowhere.o \
+ 	  exports.o \
+ 	  flash.o fpga.o ft_build.o \
+diff -Naur u-boot-1.1.4/drivers/cfi_flash.c u-boot-1.1.4-SE/drivers/cfi_flash.c
+--- u-boot-1.1.4/drivers/cfi_flash.c	2005-12-16 11:39:27.000000000 -0500
++++ u-boot-1.1.4-SE/drivers/cfi_flash.c	2007-01-24 15:20:22.000000000 -0500
+@@ -1278,4 +1278,21 @@
+ 	return retcode;
+ }
+ #endif /* CFG_FLASH_USE_BUFFER_WRITE */
++
++int read_buff(flash_info_t *info, uchar *dest, ulong addr, ulong cnt)
++{
++	while (cnt--)
++	{
++		*dest = *(uchar *)addr;
++		 dest++,addr++;
++	}
++	return 0;
++}
++
++int 
++read_buff_big(flash_info_t *info, uchar *dest, ulong addr, ulong cnt)
++{
++	return read_buff(info,dest,addr,cnt);
++}
++
+ #endif /* CFG_FLASH_CFI */
+diff -Naur u-boot-1.1.4/include/flash.h u-boot-1.1.4-SE/include/flash.h
+--- u-boot-1.1.4/include/flash.h	2005-12-16 11:39:27.000000000 -0500
++++ u-boot-1.1.4-SE/include/flash.h	2007-01-23 16:26:14.000000000 -0500
+@@ -84,8 +84,12 @@
+ /* common/flash.c */
+ extern void flash_protect (int flag, ulong from, ulong to, flash_info_t *info);
+ extern int flash_write (char *, ulong, ulong);
++extern int flash_read (ulong addr, ulong cnt,char* dest);
++extern int addr_spi (unsigned long addr);
+ extern flash_info_t *addr2info (ulong);
+ extern int write_buff (flash_info_t *info, uchar *src, ulong addr, ulong cnt);
++extern int read_buff(flash_info_t *info, uchar *dest, ulong addr, ulong cnt);
++int read_buff_big(flash_info_t *info, uchar *dest, ulong addr, ulong cnt);
+ 
+ /* board/?/flash.c */
+ #if defined(CFG_FLASH_PROTECTION)
+@@ -286,6 +290,42 @@
+ #define TOSH_ID_FVT160	0xC2		/* TC58FVT160 ID (16 M, top )		*/
+ #define TOSH_ID_FVB160	0x43		/* TC58FVT160 ID (16 M, bottom )	*/
+ 
++/* Device IDs and sizes for SPI flashs */
++#define SPI_MXIC_MANUFACT	0xc2
++#define SPI_WINBOND_MANUFACT	0xef
++#define SPI_ST_MANUFACT		0x20
++
++#define SPI_MXIC_ID_MX25L6405	0x2017
++
++#define SPI_WINBOND_ID_W25P80	0x2014
++#define SPI_WINBOND_ID_W25P16	0x2015
++#define SPI_WINBOND_ID_W25P32	0x2016
++#define  SPI_ST_ID_M25P128       0x2018
++
++#define SPI_MXIC_MX25L6405_SIZE		0x800000
++#define SPI_MXIC_MX25L6405_SECTSIZE	0x10000
++#define SPI_MXIC_MX25L6405_SECTS	128
++
++#define SPI_WINBOND_W25P80_SIZE		0x100000
++#define SPI_WINBOND_W25P80_SECTSIZE	0x10000	
++#define SPI_WINBOND_W25P80_SECTS	16
++
++#define SPI_WINBOND_W25P16_SIZE		0x200000
++#define SPI_WINBOND_W25P16_SECTSIZE	0x10000	
++#define SPI_WINBOND_W25P16_SECTS	32
++
++#define SPI_WINBOND_W25P32_SIZE		0x400000
++#define SPI_WINBOND_W25P32_SECTSIZE	0x10000	
++#define SPI_WINBOND_W25P32_SECTS	64
++
++#define SPI_ST_M25P128_SIZE		0x1000000 //16 MB
++#define SPI_ST_M25P128_SECTSIZE		0x40000   //256K secotr size!!!!
++#define SPI_ST_M25P128_SECTS		64	  //64 sectors
++
++
++
++
++
+ /*-----------------------------------------------------------------------
+  * Internal FLASH identification codes
+  *

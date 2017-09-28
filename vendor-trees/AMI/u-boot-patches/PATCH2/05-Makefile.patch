@@ -1,0 +1,55 @@
+diff -Naur u-boot-1.1.4/Makefile u-boot-1.1.4-parallel/Makefile
+--- u-boot-1.1.4/Makefile	2006-11-07 15:24:11.750316046 -0500
++++ u-boot-1.1.4-parallel/Makefile	2006-11-07 15:30:23.624720013 -0500
+@@ -132,11 +132,11 @@
+ 
+ # The "tools" are needed early, so put this first
+ # Don't include stuff already done in $(LIBS)
+-SUBDIRS	= tools \
++SUBDIRS	= \
+ 	  examples \
+ 	  post \
+ 	  post/cpu
+-.PHONY : $(SUBDIRS)
++.PHONY : tools $(SUBDIRS)
+ 
+ #########################################################################
+ #########################################################################
+@@ -164,25 +164,31 @@
+ u-boot.dis:	u-boot
+ 		$(OBJDUMP) -d $< > $@
+ 
+-u-boot:		depend $(SUBDIRS) $(OBJS) $(LIBS) $(LDSCRIPT)
++u-boot:		depend tools $(SUBDIRS) $(OBJS) $(LIBS) $(LDSCRIPT)
+ 		UNDEF_SYM=`$(OBJDUMP) -x $(LIBS) |sed  -n -e 's/.*\(__u_boot_cmd_.*\)/-u\1/p'|sort|uniq`;\
+ 		$(LD) $(LDFLAGS) $$UNDEF_SYM $(OBJS) \
+ 			--start-group $(LIBS) --end-group $(PLATFORM_LIBS) \
+ 			-Map u-boot.map -o u-boot
+ 
+-$(LIBS):
++$(OBJS) : tools
++
++$(LIBS): tools
+ 		$(MAKE) -C `dirname $@`
+ 
+-$(SUBDIRS):
++tools: 
++	$(MAKE) -C tools .depend
++	$(MAKE) -C tools all
++
++$(SUBDIRS): tools
+ 		$(MAKE) -C $@ all
+ 
+-gdbtools:
++gdbtools: tools
+ 		$(MAKE) -C tools/gdb || exit 1
+ 
+-depend dep:
++depend dep: tools
+ 		@for dir in $(SUBDIRS) ; do $(MAKE) -C $$dir .depend ; done
+ 
+-tags:
++tags: 
+ 		ctags -w `find $(SUBDIRS) include \
+ 				lib_generic board/$(BOARDDIR) cpu/$(CPU) lib_$(ARCH) \
+ 				fs/cramfs fs/fat fs/fdos fs/jffs2 \

@@ -1,0 +1,35 @@
+--- uboot/vendors/ami/fmh/Makefile	1969-12-31 19:00:00.000000000 -0500
++++ uboot.console/vendors/ami/fmh/Makefile	2006-10-04 11:41:08.112459676 -0400
+@@ -0,0 +1,32 @@
++# Makefile for AMI ractrends board
++include $(TOPDIR)/config.mk
++
++O_TARGET= fmh.o
++
++OBJS	=
++
++COBJS	= cmd_fmh.o fmhcore.o jffs2part.o
++
++OBJS	= $(AOBJS) $(COBJS)
++
++CPPFLAGS += -I..
++
++CFLAGS += -I$(TOPDIR)/../linux-2.4.18/include
++CFLAGS += -I.. -I$(TOPDIR)/vendors/ami/r2c
++
++all:	$(O_TARGET) 
++
++$(O_TARGET): .depend $(OBJS)
++	$(LD) -r -o $@ $(OBJS)
++
++distclean clean :
++	rm -f $(OBJS) $(O_TARGET)
++
++#########################################################################
++
++.depend:	Makefile $(AOBJS:.o=.S) $(COBJS:.o=.c)
++		$(CC) -M $(CFLAGS) $(AOBJS:.o=.S) $(COBJS:.o=.c) > $@
++
++sinclude .depend
++
++#########################################################################

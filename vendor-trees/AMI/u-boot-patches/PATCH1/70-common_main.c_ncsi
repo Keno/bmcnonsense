@@ -1,0 +1,24 @@
+--- uboot.org/common/main.c	2007-08-02 11:56:13.000000000 -0400
++++ uboot/common/main.c	2007-08-02 16:00:40.000000000 -0400
+@@ -34,6 +34,10 @@
+ #include <hush.h>
+ #endif
+ 
++#ifdef CONFIG_NCSI_SUPPORT
++#include <net.h>
++#endif
++
+ #include <post.h>
+ 
+ #if defined(CONFIG_BOOT_RETRY_TIME) && defined(CONFIG_RESET_TO_RETRY)
+@@ -373,6 +377,10 @@
+ 	install_auto_complete();
+ #endif
+ 
++#ifdef CONFIG_NCSI_SUPPORT
++	NetLoop(NCSI);
++#endif
++
+ #ifdef CONFIG_PREBOOT
+ 	if ((p = getenv ("preboot")) != NULL) {
+ # ifdef CONFIG_AUTOBOOT_KEYED

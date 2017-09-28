@@ -1,0 +1,17 @@
+diff -Naur linux-2.6.15.4-arm/arch/arm/boot/compressed/head.S linux-2.6.15.4-armv4/arch/arm/boot/compressed/head.S
+--- linux-2.6.15.4-arm/arch/arm/boot/compressed/head.S	2006-04-20 19:27:38.055957136 -0400
++++ linux-2.6.15.4-armv4/arch/arm/boot/compressed/head.S	2006-04-20 19:49:56.279338332 -0400
+@@ -430,6 +430,13 @@
+ 		str	r1, [r0]
+ 		mov	pc, lr
+ 
++__armv4_no_cache:
++		orr	r0,r0,#0
++		orr	r0,r0,#0
++		mov	pc,lr
++		orr	r0,r0,#0
++		orr	r0,r0,#0
++
+ __armv4_mmu_cache_on:
+ 		mov	r12, lr
+ 		bl	__setup_mmu

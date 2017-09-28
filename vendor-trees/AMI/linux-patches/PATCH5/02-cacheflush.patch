@@ -1,0 +1,13 @@
+diff -Naur linux-2.6.15.4/include/asm-arm/cacheflush.h linux-2.6.15.4-ast/include/asm-arm/cacheflush.h
+--- linux-2.6.15.4/include/asm-arm/cacheflush.h	2006-02-10 02:22:48.000000000 -0500
++++ linux-2.6.15.4-ast/include/asm-arm/cacheflush.h	2006-04-20 20:23:47.601499525 -0400
+@@ -42,7 +42,8 @@
+ #endif
+ 
+ #if defined(CONFIG_CPU_ARM920T) || defined(CONFIG_CPU_ARM922T) || \
+-    defined(CONFIG_CPU_ARM925T) || defined(CONFIG_CPU_ARM1020)
++    defined(CONFIG_CPU_ARM925T) || defined(CONFIG_CPU_ARM1020) || \
++	defined(CONFIG_CPU_ARM926T)
+ # define MULTI_CACHE 1
+ #endif
+ 

@@ -1,0 +1,46 @@
+--- uboot.org/net/net.c	2007-08-02 11:56:14.000000000 -0400
++++ uboot/net/net.c	2007-08-02 15:40:41.000000000 -0400
+@@ -168,6 +168,9 @@
+ int nc_input_packet(uchar *pkt, unsigned dest, unsigned src, unsigned len);
+ #endif
+ 
++#ifdef CONFIG_NCSI_SUPPORT
++extern void NCSI_Start(void);
++#endif
+ 
+ // Added for AMI Extension - R2C
+ extern void R2C_Initiate(char * Ether);
+@@ -177,7 +180,7 @@
+ 
+ volatile uchar *NetRxPackets[PKTBUFSRX]; /* Receive packets			*/
+ 
+-static rxhand_f *packetHandler;		/* Current RX packet handler		*/
++static rxhand_f *packetHandler=NULL;	/* Current RX packet handler		*/
+ static thand_f *timeHandler;		/* Current timeout handler		*/
+ static ulong	timeStart;		/* Time base value			*/
+ static ulong	timeDelta;		/* Current timeout value		*/
+@@ -457,6 +460,12 @@
+ 		case R2C:
+ 			R2C_Initiate(NetOurEther);
+ 			break;
++#ifdef CONFIG_NCSI_SUPPORT
++		case NCSI:
++			NCSI_Start();
++			NetState = NETLOOP_SUCCESS;		
++			break;
++#endif
+ 		default:
+ 			break;
+ 		}
+@@ -1504,6 +1513,11 @@
+ 						ntohs(ip->udp_src),
+ 						ntohs(ip->udp_len) - 8);
+ 		break;
++
++	default:
++		if(packetHandler)	
++			(*packetHandler)((uchar *)NetRxPkt,0,0,NetRxPktLen);
++	
+ 	}
+ }
+ 

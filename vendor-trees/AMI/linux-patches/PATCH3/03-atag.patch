@@ -1,0 +1,61 @@
+diff -Naur linux-2.6.15.4/arch/arm/kernel/setup.c linux-2.6.15.4-KIRA_EVAL_A/arch/arm/kernel/setup.c
+--- linux-2.6.15.4/arch/arm/kernel/setup.c	2006-02-10 02:22:48.000000000 -0500
++++ linux-2.6.15.4-KIRA_EVAL_A/arch/arm/kernel/setup.c	2006-05-19 16:10:51.572097416 -0400
+@@ -724,6 +724,26 @@
+ 
+ __tagtable(ATAG_CMDLINE, parse_tag_cmdline);
+ 
++/* AMI Extensiosn Start */
++unsigned long enetaddr[4][6];
++
++static int __init parse_tag_enetaddr(const struct tag *tag)
++{
++	if (tag->u.enetaddr.enet_count > 0)
++		memcpy(enetaddr[0],tag->u.enetaddr.enet0_addr,6);
++	if (tag->u.enetaddr.enet_count > 1)
++		memcpy(enetaddr[1],tag->u.enetaddr.enet1_addr,6);
++	if (tag->u.enetaddr.enet_count > 2)
++		memcpy(enetaddr[2],tag->u.enetaddr.enet2_addr,6);
++	if (tag->u.enetaddr.enet_count > 3)
++		memcpy(enetaddr[3],tag->u.enetaddr.enet3_addr,6);
++	return 0;
++}
++__tagtable(ATAG_ENETADDR, parse_tag_enetaddr);
++
++/* AMI Extensiosn End */
++
++
+ /*
+  * Scan the tag table for this tag, and call its parse function.
+  * The tag table is built by the linker from all the __tagtable
+diff -Naur linux-2.6.15.4/include/asm-arm/setup.h linux-2.6.15.4-KIRA_EVAL_A/include/asm-arm/setup.h
+--- linux-2.6.15.4/include/asm-arm/setup.h	2006-02-10 02:22:48.000000000 -0500
++++ linux-2.6.15.4-KIRA_EVAL_A/include/asm-arm/setup.h	2006-05-19 16:11:14.053351567 -0400
+@@ -143,6 +143,16 @@
+ 	__u32 fmemclk;
+ };
+ 
++/* ATAG to pass MAC address and clock to OS - AMI Extension */
++#define ATAG_ENETADDR 0x41000901
++struct tag_enetaddr {
++	 unsigned long enet_count;
++	 unsigned char enet0_addr[6];
++	 unsigned char enet1_addr[6];
++	 unsigned char enet2_addr[6];
++	 unsigned char enet3_addr[6];
++};
++
+ struct tag {
+ 	struct tag_header hdr;
+ 	union {
+@@ -165,6 +175,10 @@
+ 		 * DC21285 specific
+ 		 */
+ 		struct tag_memclk	memclk;
++		/*
++		 * AMI Extensions 
++		 */
++		struct tag_enetaddr	 enetaddr;
+ 	} u;
+ };
+ 

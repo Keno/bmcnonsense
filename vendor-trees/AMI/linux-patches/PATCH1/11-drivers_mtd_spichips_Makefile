@@ -1,0 +1,10 @@
+--- linux/drivers/mtd/spichips/Makefile	1969-12-31 19:00:00.000000000 -0500
++++ linux.spi/drivers/mtd/spichips/Makefile	2007-05-11 14:01:34.000000000 -0400
+@@ -0,0 +1,7 @@
++#
++# linux/drivers/spichips/Makefile
++#
++obj-$(CONFIG_MTD_SPI)		+= spimtd.o spiaccess.o spireg.o generic.o
++obj-$(CONFIG_MTD_SPI_ST)   	+= m25pxx.o
++obj-$(CONFIG_MTD_SPI_AT)   	+= atmel.o
++obj-$(CONFIG_MTD_SPI_INTEL_S33) += intels33.o

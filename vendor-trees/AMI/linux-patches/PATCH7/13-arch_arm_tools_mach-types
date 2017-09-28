@@ -1,0 +1,7 @@
+--- linux-2.6.15.4-wpcm/arch/arm/tools/mach-types	2007-06-20 11:38:01.000000000 -0400
++++ linux-2.6.15.4-wb/arch/arm/tools/mach-types	2007-06-18 23:01:54.000000000 -0400
+@@ -1367,3 +1367,4 @@
+ csb726			MACH_CSB726		CSB726			1359
+ tik27			MACH_TIK27		TIK27			1360
+ mx_uc7420		MACH_MX_UC7420		MX_UC7420		1361
++hermon			MACH_HERMON		HERMON			1362

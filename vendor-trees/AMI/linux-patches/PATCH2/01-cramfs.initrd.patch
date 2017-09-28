@@ -1,0 +1,17 @@
+diff -Naur linux-2.6.15.4/init/do_mounts.c linux-2.6.15.4-new/init/do_mounts.c
+--- linux-2.6.15.4/init/do_mounts.c	2006-07-12 12:43:18.382447280 -0400
++++ linux-2.6.15.4-new/init/do_mounts.c	2006-07-12 12:42:00.358054147 -0400
+@@ -398,7 +398,13 @@
+ 			return;
+ 
+ 		printk(KERN_ERR "VFS: Unable to mount root fs via NFS, trying floppy.\n");
++
++// Patch by AMI for CRAMFS Ramdisk 
++#ifdef CONFIG_BLK_DEV_FD
+ 		ROOT_DEV = Root_FD0;
++#else
++		ROOT_DEV = Root_RAM0;	
++#endif
+ 	}
+ #endif
+ #ifdef CONFIG_BLK_DEV_FD

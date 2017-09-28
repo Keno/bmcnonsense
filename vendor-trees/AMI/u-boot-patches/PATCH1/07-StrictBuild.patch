@@ -1,0 +1,12 @@
+diff -Naur u-boot-1.1.4/config.mk u-boot-1.1.4-common/config.mk
+--- u-boot-1.1.4/config.mk	2006-04-28 10:08:33.119602949 -0400
++++ u-boot-1.1.4-common/config.mk	2006-04-28 10:12:49.605507535 -0400
+@@ -124,6 +124,8 @@
+ 	-fno-builtin -ffreestanding -nostdinc -isystem	\
+ 	$(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
+ 
++CPPFLAGS :=$(CPPFLAGS) -Wall -Werror
++
+ ifdef BUILD_TAG
+ CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes \
+ 	-DBUILD_TAG='"$(BUILD_TAG)"'

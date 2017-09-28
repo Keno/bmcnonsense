@@ -1,0 +1,12 @@
+diff -Naur u-boot-1.1.4/examples/Makefile u-boot.make3.81/examples/Makefile
+--- u-boot-1.1.4/examples/Makefile      2008-03-11 16:38:13.000000000 -0400
++++ u-boot.make3.81/examples/Makefile   2008-03-11 16:39:52.000000000 -0400
+@@ -70,7 +70,7 @@
+
+ ifeq ($(ARCH),ppc)
+ SREC   += sched.srec
+-BIN    += sched.bin sched
++BIN    += sched sched.bin
+ endif
+
+ # The following example is pretty 8xx specific...

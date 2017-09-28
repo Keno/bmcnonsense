@@ -1,0 +1,199 @@
+diff -urp v2.6.24/linux/Documentation/filesystems/proc.txt linux/Documentation/filesystems/proc.txt
+--- v2.6.24/linux/Documentation/filesystems/proc.txt	2008-01-25 10:44:55.000000000 +0200
++++ linux/Documentation/filesystems/proc.txt	2008-02-05 00:51:23.000000000 +0200
+@@ -1843,6 +1843,16 @@ send_redirects
+ 
+ Determines whether to send ICMP redirects to other hosts.
+ 
++hidden
++------
++
++Hide  addresses attached  to this device  from other  devices.  Such addresses
++will  never be selected  by source address  autoselection mechanism, host does
++not  answer broadcast ARP requests for them,  does not announce them as source
++address  of ARP requests,  but they are  still reachable via  IP. This flag is
++activated  only if it is enabled both  in specific device section and in "all"
++section.
++
+ Routing settings
+ ----------------
+ 
+diff -urp v2.6.24/linux/Documentation/networking/ip-sysctl.txt linux/Documentation/networking/ip-sysctl.txt
+--- v2.6.24/linux/Documentation/networking/ip-sysctl.txt	2008-01-25 10:44:55.000000000 +0200
++++ linux/Documentation/networking/ip-sysctl.txt	2008-02-05 00:51:23.000000000 +0200
+@@ -763,6 +763,14 @@ disable_xfrm - BOOLEAN
+ 
+ 
+ 
++hidden - BOOLEAN
++	Hide addresses attached to this device from other devices.
++	Such addresses will never be selected by source address autoselection
++	mechanism, host does not answer broadcast ARP requests for them,
++	does not announce them as source address of ARP requests, but they
++	are still reachable via IP. This flag is activated only if it is
++	enabled both in specific device section and in "all" section.
++
+ tag - INTEGER
+ 	Allows you to write a number, which can be used as required.
+ 	Default value is 0.
+diff -urp v2.6.24/linux/include/linux/inetdevice.h linux/include/linux/inetdevice.h
+--- v2.6.24/linux/include/linux/inetdevice.h	2007-07-10 09:18:42.000000000 +0300
++++ linux/include/linux/inetdevice.h	2008-02-05 00:51:23.000000000 +0200
+@@ -88,6 +88,7 @@ static inline void ipv4_devconf_setall(s
+ 
+ #define IN_DEV_LOG_MARTIANS(in_dev)	IN_DEV_ORCONF((in_dev), LOG_MARTIANS)
+ #define IN_DEV_PROXY_ARP(in_dev)	IN_DEV_ORCONF((in_dev), PROXY_ARP)
++#define IN_DEV_HIDDEN(in_dev)		IN_DEV_ANDCONF((in_dev), HIDDEN)
+ #define IN_DEV_SHARED_MEDIA(in_dev)	IN_DEV_ORCONF((in_dev), SHARED_MEDIA)
+ #define IN_DEV_TX_REDIRECTS(in_dev)	IN_DEV_ORCONF((in_dev), SEND_REDIRECTS)
+ #define IN_DEV_SEC_REDIRECTS(in_dev)	IN_DEV_ORCONF((in_dev), \
+diff -urp v2.6.24/linux/include/linux/sysctl.h linux/include/linux/sysctl.h
+--- v2.6.24/linux/include/linux/sysctl.h	2008-01-25 10:45:05.000000000 +0200
++++ linux/include/linux/sysctl.h	2008-02-05 00:51:23.000000000 +0200
+@@ -491,6 +491,7 @@ enum
+ 	NET_IPV4_CONF_ARP_IGNORE=19,
+ 	NET_IPV4_CONF_PROMOTE_SECONDARIES=20,
+ 	NET_IPV4_CONF_ARP_ACCEPT=21,
++	NET_IPV4_CONF_HIDDEN=22,
+ 	__NET_IPV4_CONF_MAX
+ };
+ 
+diff -urp v2.6.24/linux/kernel/sysctl_check.c linux/kernel/sysctl_check.c
+--- v2.6.24/linux/kernel/sysctl_check.c	2008-01-25 10:45:06.000000000 +0200
++++ linux/kernel/sysctl_check.c	2008-02-05 00:52:41.000000000 +0200
+@@ -224,6 +224,7 @@ static struct trans_ctl_table trans_net_
+ 	{ NET_IPV4_CONF_ARP_IGNORE,		"arp_ignore" },
+ 	{ NET_IPV4_CONF_PROMOTE_SECONDARIES,	"promote_secondaries" },
+ 	{ NET_IPV4_CONF_ARP_ACCEPT,		"arp_accept" },
++	{ NET_IPV4_CONF_HIDDEN,			"hidden" },
+ 	{}
+ };
+ 
+diff -urp v2.6.24/linux/net/ipv4/arp.c linux/net/ipv4/arp.c
+--- v2.6.24/linux/net/ipv4/arp.c	2008-01-25 10:45:06.000000000 +0200
++++ linux/net/ipv4/arp.c	2008-02-05 00:51:23.000000000 +0200
+@@ -72,6 +72,8 @@
+  *					bonding can change the skb before
+  *					sending (e.g. insert 8021q tag).
+  *		Harald Welte	:	convert to make use of jenkins hash
++ *		Julian Anastasov:	"hidden" flag: hide the
++ *					interface and don't reply for it
+  */
+ 
+ #include <linux/module.h>
+@@ -334,21 +336,34 @@ static void arp_solicit(struct neighbour
+ 	__be32 target = *(__be32*)neigh->primary_key;
+ 	int probes = atomic_read(&neigh->probes);
+ 	struct in_device *in_dev = in_dev_get(dev);
++	struct in_device *in_dev2 = NULL;
++	struct net_device *dev2 = NULL;
++	int mode;
+ 
+ 	if (!in_dev)
+ 		return;
+ 
+-	switch (IN_DEV_ARP_ANNOUNCE(in_dev)) {
++	mode = IN_DEV_ARP_ANNOUNCE(in_dev);
++	if (mode != 2 && skb && (dev2 = ip_dev_find(ip_hdr(skb)->saddr)) != NULL &&
++	    (saddr = ip_hdr(skb)->saddr, in_dev2 = in_dev_get(dev2)) != NULL &&
++	    IN_DEV_HIDDEN(in_dev2)) {
++		saddr = 0;
++		goto get;
++	}
++
++	switch (mode) {
+ 	default:
+ 	case 0:		/* By default announce any local IP */
++		if (saddr)
++			break;
+ 		if (skb && inet_addr_type(ip_hdr(skb)->saddr) == RTN_LOCAL)
+ 			saddr = ip_hdr(skb)->saddr;
+ 		break;
+ 	case 1:		/* Restrict announcements of saddr in same subnet */
+ 		if (!skb)
+ 			break;
+-		saddr = ip_hdr(skb)->saddr;
+-		if (inet_addr_type(saddr) == RTN_LOCAL) {
++		if (saddr || (saddr = ip_hdr(skb)->saddr,
++			      inet_addr_type(saddr) == RTN_LOCAL)) {
+ 			/* saddr should be known to target */
+ 			if (inet_addr_onlink(in_dev, target, saddr))
+ 				break;
+@@ -359,6 +374,12 @@ static void arp_solicit(struct neighbour
+ 		break;
+ 	}
+ 
++get:
++	if (dev2) {
++		if (in_dev2)
++			in_dev_put(in_dev2);
++		dev_put(dev2);
++	}
+ 	if (in_dev)
+ 		in_dev_put(in_dev);
+ 	if (!saddr)
+@@ -436,6 +457,26 @@ static int arp_filter(__be32 sip, __be32
+ 	return flag;
+ }
+ 
++static int arp_hidden(u32 tip, struct net_device *dev)
++{
++	struct net_device *dev2 = NULL;
++	struct in_device *in_dev2 = NULL;
++	int ret = 0;
++
++	if (!IPV4_DEVCONF_ALL(HIDDEN))
++		return 0;
++
++	if ((dev2 = ip_dev_find(tip)) && dev2 != dev &&
++	    (in_dev2 = in_dev_get(dev2)) && IN_DEV_HIDDEN(in_dev2))
++		ret = 1;
++	if (dev2) {
++		if (in_dev2)
++			in_dev_put(in_dev2);
++		dev_put(dev2);
++	}
++	return ret;
++}
++
+ /* OBSOLETE FUNCTIONS */
+ 
+ /*
+@@ -807,6 +848,7 @@ static int arp_process(struct sk_buff *s
+ 	if (sip == 0) {
+ 		if (arp->ar_op == htons(ARPOP_REQUEST) &&
+ 		    inet_addr_type(tip) == RTN_LOCAL &&
++		    !arp_hidden(tip, dev) &&
+ 		    !arp_ignore(in_dev,dev,sip,tip))
+ 			arp_send(ARPOP_REPLY, ETH_P_ARP, sip, dev, tip, sha,
+ 				 dev->dev_addr, sha);
+@@ -828,6 +870,8 @@ static int arp_process(struct sk_buff *s
+ 					dont_send |= arp_ignore(in_dev,dev,sip,tip);
+ 				if (!dont_send && IN_DEV_ARPFILTER(in_dev))
+ 					dont_send |= arp_filter(sip,tip,dev);
++				if (!dont_send && skb->pkt_type != PACKET_HOST)
++					dont_send |= arp_hidden(tip,dev); 
+ 				if (!dont_send)
+ 					arp_send(ARPOP_REPLY,ETH_P_ARP,sip,dev,tip,sha,dev->dev_addr,sha);
+ 
+diff -urp v2.6.24/linux/net/ipv4/devinet.c linux/net/ipv4/devinet.c
+--- v2.6.24/linux/net/ipv4/devinet.c	2008-01-25 10:45:06.000000000 +0200
++++ linux/net/ipv4/devinet.c	2008-02-05 00:51:23.000000000 +0200
+@@ -954,7 +954,8 @@ no_in_dev:
+ 			continue;
+ 
+ 		for_primary_ifa(in_dev) {
+-			if (ifa->ifa_scope != RT_SCOPE_LINK &&
++			if (!IN_DEV_HIDDEN(in_dev) &&
++			    ifa->ifa_scope != RT_SCOPE_LINK &&
+ 			    ifa->ifa_scope <= scope) {
+ 				addr = ifa->ifa_local;
+ 				goto out_unlock_both;
+@@ -1486,6 +1487,7 @@ static struct devinet_sysctl_table {
+ 		DEVINET_SYSCTL_RW_ENTRY(BOOTP_RELAY, "bootp_relay"),
+ 		DEVINET_SYSCTL_RW_ENTRY(LOG_MARTIANS, "log_martians"),
+ 		DEVINET_SYSCTL_RW_ENTRY(TAG, "tag"),
++		DEVINET_SYSCTL_RW_ENTRY(HIDDEN, "hidden"),
+ 		DEVINET_SYSCTL_RW_ENTRY(ARPFILTER, "arp_filter"),
+ 		DEVINET_SYSCTL_RW_ENTRY(ARP_ANNOUNCE, "arp_announce"),
+ 		DEVINET_SYSCTL_RW_ENTRY(ARP_IGNORE, "arp_ignore"),

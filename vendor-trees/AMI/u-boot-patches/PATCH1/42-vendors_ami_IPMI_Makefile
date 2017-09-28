@@ -1,0 +1,35 @@
+--- uboot.org/vendors/ami/IPMI/Makefile	1969-12-31 19:00:00.000000000 -0500
++++ uboot/vendors/ami/IPMI/Makefile	2007-04-04 17:03:29.000000000 -0400
+@@ -0,0 +1,32 @@
++# Makefile for AMI ractrends board
++include $(TOPDIR)/config.mk
++
++O_TARGET= ipmi.o
++
++OBJS	=
++
++COBJS	= cmdhandler.o
++
++OBJS	= $(AOBJS) $(COBJS)
++
++CPPFLAGS += -I..
++
++CFLAGS += -I.. -I$(TOPDIR)/../linux-2.4.18/include -I$(TOPDIR)/vendors/ami/IPMI  -I$(TOPDIR)/vendors/ami/fmh -I$(TOPDIR)/include/$(SOC) -I$(TOPDIR)/..
++CFLAGS += -DCPU_BYTE_ORDER_LITTLE_ENDIAN
++
++all:	$(O_TARGET) 
++
++$(O_TARGET): .depend $(OBJS)
++	$(LD) -r -o $@ $(OBJS)
++
++distclean clean :
++	rm -f $(OBJS) $(O_TARGET)
++
++#########################################################################
++
++.depend:	Makefile $(AOBJS:.o=.S) $(COBJS:.o=.c)
++		$(CC) -M $(CFLAGS) $(AOBJS:.o=.S) $(COBJS:.o=.c) > $@
++
++sinclude .depend
++
++#########################################################################

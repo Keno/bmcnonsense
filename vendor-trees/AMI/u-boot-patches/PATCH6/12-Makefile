@@ -1,0 +1,11 @@
+--- u-boot-1.1.4-wpcm/Makefile	2007-06-28 13:44:02.000000000 -0400
++++ u-boot-1.1.4-good/Makefile	2007-06-27 17:48:07.000000000 -0400
+@@ -1573,6 +1573,8 @@
+ cm41xx_config	:	unconfig
+ 	@./mkconfig $(@:_config=) arm arm920t cm41xx NULL ks8695
+ 
++HERMON_config : unconfig
++	@./mkconfig $(@:_config=) arm arm926ejs HERMON NULL WPCM450
+ #########################################################################
+ ## S3C44B0 Systems
+ #########################################################################

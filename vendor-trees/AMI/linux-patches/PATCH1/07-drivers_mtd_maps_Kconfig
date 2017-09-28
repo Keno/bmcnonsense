@@ -1,0 +1,30 @@
+--- linux/drivers/mtd/maps/Kconfig	2007-07-09 23:18:50.000000000 -0400
++++ linux.mb/drivers/mtd/maps/Kconfig	2007-07-09 15:02:37.000000000 -0400
+@@ -376,6 +376,22 @@
+ 	  Redwood board. If you have one of these boards and would like to
+ 	  use the flash chips on it, say 'Y'.
+ 
++config MTD_RACTRENDS
++        tristate "Map driver for AMI Ractrends Based boards"
++	default y
++	select MTD_PARTITIONS
++        help
++          Map driver for AMI Ractrends Based boards.
++
++config MTD_RACTRENDS_MAX_BANKS
++	int "Number of Flash Banks to Scan"
++	depends on MTD_RACTRENDS
++	default 1
++	help
++	   If your have multiple flash chips arranged consecutively, enter the 
++	   number of chips here.
++
++
+ config MTD_SOLUTIONENGINE
+ 	tristate "CFI Flash device mapped on Hitachi SolutionEngine"
+ 	depends on SUPERH && MTD_CFI && MTD_REDBOOT_PARTS
+@@ -599,3 +615,4 @@
+ 
+ endmenu
+ 
++

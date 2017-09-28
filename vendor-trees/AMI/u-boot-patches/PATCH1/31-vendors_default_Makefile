@@ -1,0 +1,32 @@
+--- uboot/vendors/default/Makefile	1969-12-31 19:00:00.000000000 -0500
++++ uboot.console/vendors/default/Makefile	2006-10-04 11:41:08.137459844 -0400
+@@ -0,0 +1,29 @@
++# Makefile for default vendor (generic u-boot)
++include $(TOPDIR)/config.mk
++
++LIB	= ../libvendor.a
++
++AOBJS	=
++
++COBJS	= novendor.o 
++
++OBJS	= $(AOBJS) $(COBJS)
++
++CPPFLAGS += -I..
++
++all:	$(LIB) $(OBJS) 
++
++$(LIB):	.depend $(OBJS)
++	$(AR) crv $@ $(OBJS)
++
++distclean clean : 
++	rm -f $(LIB) $(OBJS)
++
++#########################################################################
++
++.depend:	Makefile $(AOBJS:.o=.S) $(COBJS:.o=.c)
++		$(CC) -M $(CFLAGS) $(AOBJS:.o=.S) $(COBJS:.o=.c) > $@
++
++sinclude .depend
++
++#########################################################################

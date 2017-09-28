@@ -1,0 +1,12 @@
+diff -Naur u-boot-1.1.4.org/Makefile u-boot-1.1.4/Makefile
+--- u-boot-1.1.4.org/Makefile	2006-07-10 15:50:18.515228434 -0400
++++ u-boot-1.1.4/Makefile	2006-07-10 15:59:34.394626447 -0400
+@@ -121,6 +121,8 @@
+ LIBS += drivers/sk98lin/libsk98lin.a
+ LIBS += post/libpost.a post/cpu/libcpu.a
+ LIBS += common/libcommon.a
++LIBS += vendors/libvendor.a
++
+ .PHONY : $(LIBS)
+ 
+ # Add GCC lib

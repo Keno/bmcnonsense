@@ -1,0 +1,91 @@
+diff -Naur u-boot-1.1.4/common/cmd_bdinfo.c u-boot-1.1.4-common/common/cmd_bdinfo.c
+--- u-boot-1.1.4/common/cmd_bdinfo.c	2005-12-16 11:39:27.000000000 -0500
++++ u-boot-1.1.4-common/common/cmd_bdinfo.c	2006-04-28 10:16:58.047368589 -0400
+@@ -234,6 +234,28 @@
+ 	for (i=0; i<6; ++i) {
+ 		printf ("%c%02X", i ? ':' : ' ', bd->bi_enetaddr[i]);
+ 	}
++
++#if defined(CONFIG_HAS_ETH1)
++	puts ("\neth1addr    =");
++	for (i=0; i<6; ++i) {
++		printf ("%c%02X", i ? ':' : ' ', bd->bi_enet1addr[i]);
++	}
++#endif
++
++#if defined(CONFIG_HAS_ETH2)
++       puts ("\neth2addr    =");
++       for (i=0; i<6; ++i) {
++		printf ("%c%02X", i ? ':' : ' ', bd->bi_enet2addr[i]);
++	}
++#endif
++
++#if defined(CONFIG_HAS_ETH3)
++       puts ("\neth3addr    =");
++       for (i=0; i<6; ++i) {
++		printf ("%c%02X", i ? ':' : ' ', bd->bi_enet3addr[i]);
++	}
++#endif
++
+ 	puts  ( "\n"
+ 		"ip_addr     = ");
+ 	print_IPaddr (bd->bi_ip_addr);
+diff -Naur u-boot-1.1.4/include/asm-arm/u-boot.h u-boot-1.1.4-common/include/asm-arm/u-boot.h
+--- u-boot-1.1.4/include/asm-arm/u-boot.h	2005-12-16 11:39:27.000000000 -0500
++++ u-boot-1.1.4-common/include/asm-arm/u-boot.h	2006-04-28 10:15:33.354564213 -0400
+@@ -40,6 +40,15 @@
+     int			bi_baudrate;	/* serial console baudrate */
+     unsigned long	bi_ip_addr;	/* IP Address */
+     unsigned char	bi_enetaddr[6]; /* Ethernet adress */
++#ifdef CONFIG_HAS_ETH1
++    unsigned char	bi_enet1addr[6]; /* Ethernet adress */
++#endif
++#ifdef CONFIG_HAS_ETH2
++    unsigned char	bi_enet2addr[6]; /* Ethernet adress */
++#endif
++#ifdef CONFIG_HAS_ETH3
++    unsigned char	bi_enet3addr[6]; /* Ethernet adress */
++#endif
+     struct environment_s	       *bi_env;
+     ulong	        bi_arch_number;	/* unique id for this board */
+     ulong	        bi_boot_params;	/* where this board expects params */
+diff -Naur u-boot-1.1.4/lib_arm/board.c u-boot-1.1.4-common/lib_arm/board.c
+--- u-boot-1.1.4/lib_arm/board.c	2005-12-16 11:39:27.000000000 -0500
++++ u-boot-1.1.4-common/lib_arm/board.c	2006-04-28 10:15:49.223464529 -0400
+@@ -301,6 +301,36 @@
+ 			if (s)
+ 				s = (*e) ? e + 1 : e;
+ 		}
++#ifdef CONFIG_HAS_ETH1
++		i = getenv_r ("eth1addr", tmp, sizeof (tmp));
++		s = (i > 0) ? tmp : NULL;
++
++		for (reg = 0; reg < 6; ++reg) {
++			gd->bd->bi_enet1addr[reg] = s ? simple_strtoul (s, &e, 16) : 0;
++			if (s)
++				s = (*e) ? e + 1 : e;
++		}
++#endif
++#ifdef CONFIG_HAS_ETH2
++		i = getenv_r ("eth2addr", tmp, sizeof (tmp));
++		s = (i > 0) ? tmp : NULL;
++
++		for (reg = 0; reg < 6; ++reg) {
++			gd->bd->bi_enet2addr[reg] = s ? simple_strtoul (s, &e, 16) : 0;
++			if (s)
++				s = (*e) ? e + 1 : e;
++		}
++#endif
++#ifdef CONFIG_HAS_ETH3
++		i = getenv_r ("eth3addr", tmp, sizeof (tmp));
++		s = (i > 0) ? tmp : NULL;
++
++		for (reg = 0; reg < 6; ++reg) {
++			gd->bd->bi_enet3addr[reg] = s ? simple_strtoul (s, &e, 16) : 0;
++			if (s)
++				s = (*e) ? e + 1 : e;
++		}
++#endif
+ 	}
+ 
+ 	devices_init ();	/* get the devices list going. */

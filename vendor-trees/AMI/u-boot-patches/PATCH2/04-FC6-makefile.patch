@@ -1,0 +1,12 @@
+diff -Naur uboot/examples/Makefile uboot.fc6/examples/Makefile
+--- uboot/examples/Makefile	2005-12-16 11:39:27.000000000 -0500
++++ uboot.fc6/examples/Makefile	2006-11-07 15:17:29.227124931 -0500
+@@ -115,6 +115,8 @@
+ 
+ all:	.depend $(OBJS) $(LIB) $(SREC) $(BIN)
+ 
++$(SREC) : $(BIN)
++
+ #########################################################################
+ $(LIB): .depend $(LIBOBJS)
+ 	$(AR) crv $@ $(LIBOBJS)

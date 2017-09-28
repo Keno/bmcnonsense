@@ -1,0 +1,1 @@
+#define CONFIG_ETH_WPCM450 1

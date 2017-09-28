@@ -1,0 +1,7 @@
+--- linux/drivers/mtd/spichips/Makefile	2007-07-09 22:44:06.000000000 -0400
++++ linux.mb/drivers/mtd/spichips/Makefile	2007-07-09 10:41:47.000000000 -0400
+@@ -5,3 +5,4 @@
+ obj-$(CONFIG_MTD_SPI_ST)   	+= m25pxx.o
+ obj-$(CONFIG_MTD_SPI_AT)   	+= atmel.o
+ obj-$(CONFIG_MTD_SPI_INTEL_S33) += intels33.o
++obj-$(CONFIG_MTD_WPCM450_SPI)	+= hermon_spi.o

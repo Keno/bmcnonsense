@@ -1,0 +1,16 @@
+diff -Naur linux-2.6.15.4/Makefile linux-2.6.15.4-FA526/Makefile
+--- linux-2.6.15.4/Makefile	2006-05-01 16:10:32.628138329 -0400
++++ linux-2.6.15.4-FA526/Makefile	2006-05-01 16:14:22.896923672 -0400
+@@ -190,8 +190,10 @@
+ # Default value for CROSS_COMPILE is not to prefix executables
+ # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
+ 
+-ARCH		?= $(SUBARCH)
+-CROSS_COMPILE	?=
++#ARCH		?= $(SUBARCH)
++#CROSS_COMPILE	?=
++ARCH := arm
++CROSS_COMPILE := arm-linux-
+ 
+ # Architecture as present in compile.h
+ UTS_MACHINE 	:= $(ARCH)

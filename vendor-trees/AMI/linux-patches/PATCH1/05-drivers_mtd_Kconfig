@@ -1,0 +1,11 @@
+--- linux-2.6.15.4/drivers/mtd/Kconfig	2006-02-10 02:22:48.000000000 -0500
++++ linux-2.6.15.4.spi/drivers/mtd/Kconfig	2007-02-19 13:21:40.000000000 -0500
+@@ -288,6 +288,8 @@
+ 
+ source "drivers/mtd/chips/Kconfig"
+ 
++source "drivers/mtd/spichips/Kconfig"
++
+ source "drivers/mtd/maps/Kconfig"
+ 
+ source "drivers/mtd/devices/Kconfig"

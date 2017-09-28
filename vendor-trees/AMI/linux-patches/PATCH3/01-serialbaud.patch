@@ -1,0 +1,13 @@
+diff -Naur linux-2.6.15.4-amiext/include/asm-arm/serial.h linux-2.6.15.4-arm/include/asm-arm/serial.h
+--- linux-2.6.15.4-amiext/include/asm-arm/serial.h	2006-02-10 02:22:48.000000000 -0500
++++ linux-2.6.15.4-arm/include/asm-arm/serial.h	2006-04-20 19:29:04.420825538 -0400
+@@ -14,6 +14,8 @@
+ #ifndef __ASM_SERIAL_H
+ #define __ASM_SERIAL_H
+ 
+-#define BASE_BAUD	(1843200 / 16)
++//#define BASE_BAUD	(1843200 / 16)
++
++#include <asm/arch/serial.h>
+ 
+ #endif

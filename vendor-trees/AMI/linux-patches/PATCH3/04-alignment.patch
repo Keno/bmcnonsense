@@ -1,0 +1,12 @@
+diff -Naur linux/arch/arm/mm/alignment.c linux.align/arch/arm/mm/alignment.c
+--- linux/arch/arm/mm/alignment.c	2006-02-10 02:22:48.000000000 -0500
++++ linux.align/arch/arm/mm/alignment.c	2006-10-04 08:23:36.206796828 -0400
+@@ -68,7 +68,7 @@
+ static unsigned long ai_word;
+ static unsigned long ai_dword;
+ static unsigned long ai_multi;
+-static int ai_usermode;
++static int ai_usermode=3;		/* Fixup and Warn */
+ 
+ #ifdef CONFIG_PROC_FS
+ static const char *usermode_action[] = {

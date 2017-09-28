@@ -1,0 +1,7 @@
+--- linux-2.6.15.4-cpu/drivers/net/arm/Makefile	2006-02-10 02:22:48.000000000 -0500
++++ linux-2.6.15.4-wpcm/drivers/net/arm/Makefile	2007-06-25 23:40:20.000000000 -0400
+@@ -9,3 +9,4 @@
+ obj-$(CONFIG_ARM_ETHER1)	+= ether1.o
+ obj-$(CONFIG_ARM_AT91_ETHER)	+= at91_ether.o
+ obj-$(CONFIG_EP93XX_ETH)	+= ep93xx_eth.o
++obj-$(CONFIG_WPCM450_MAC) 	+= wpcm450_intr.o wpcm450_main.o wpcm450_mac.o wpcm450_mii.o

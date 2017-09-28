@@ -1,0 +1,12 @@
+diff -Naur linux-2.6.15.4/Makefile linux-2.6.15.4-amiext/Makefile
+--- linux-2.6.15.4/Makefile	2006-02-10 02:22:48.000000000 -0500
++++ linux-2.6.15.4-amiext/Makefile	2006-04-20 19:03:59.519825189 -0400
+@@ -1,7 +1,7 @@
+ VERSION = 2
+ PATCHLEVEL = 6
+ SUBLEVEL = 24
+-EXTRAVERSION =
++EXTRAVERSION = -ami
+ NAME = Arr Matey! A Hairy Bilge Rat!
+ 
+ # *DOCUMENTATION*

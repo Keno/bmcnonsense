@@ -1,0 +1,19 @@
+--- uboot.org/vendors/Makefile	1969-12-31 19:00:00.000000000 -0500
++++ uboot/vendors/Makefile	2007-04-04 16:57:39.000000000 -0400
+@@ -0,0 +1,16 @@
++SUBDIRS := ami 
++
++all: subdirs
++
++subdirs:
++	for n in $(SUBDIRS); do $(MAKE) -C $$n all|| exit 1; done
++
++distclean:
++	for n in $(SUBDIRS); do $(MAKE) -C $$n distclean; done
++
++clean:
++	rm -f libvendor.a
++	for n in $(SUBDIRS); do $(MAKE) -C $$n clean; done
++
++.depend:
++	for n in $(SUBDIRS); do $(MAKE) -C $(SUBDIRS) .depend

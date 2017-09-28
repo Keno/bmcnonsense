@@ -1,0 +1,41 @@
+--- linux-2.6.15.4-cpu/arch/arm/Kconfig	2007-06-20 11:35:15.000000000 -0400
++++ linux-2.6.15.4-wpcm/arch/arm/Kconfig	2007-06-26 22:29:26.000000000 -0400
+@@ -484,6 +484,38 @@
+ config PLAT_IOP
+ 	bool
+ 
++# Define the SOC if any used here and sub components of the SOC here
++config SOC_WPCM450
++	bool
++	select WPCM450_MAC
++	select WPCM450_SERIAL
++	select CPU_ARM926T
++	default y if ARCH_HERMON
++
++config WPCM450_MAC
++	tristate "Winbond WPCM450 MAC  support"	
++	depends on NET_ETHERNET && SOC_WPCM450
++	default y 
++
++config WPCM450_SERIAL
++	bool "Winbond WPCM450 Serial support"	
++	depends on SOC_WPCM450
++	default y 
++
++config UART_CLK
++   int "UART Clock in Hz"
++   depends on SOC_WPCM450
++   default "24000000"
++
++config TIMER_CLK
++   int "TIMER Clock in Hz"
++   depends on SOC_WPCM450
++   default "24000000"
++
++#End of SOC components description
++
++
++
+ source arch/arm/mm/Kconfig
+ 
+ config IWMMXT

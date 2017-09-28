@@ -1,0 +1,11 @@
+--- uboot/config.mk	2007-07-13 12:46:05.000000000 -0400
++++ uboot.new/config.mk	2007-07-13 12:36:17.000000000 -0400
+@@ -127,6 +127,8 @@
+ 
+ CPPFLAGS :=$(CPPFLAGS) -Wall -Werror
+ 
++CPPFLAGS := $(CPPFLAGS) -include $(TOPDIR)/../projdef.h
++
+ ifdef BUILD_TAG
+ CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes \
+ 	-DBUILD_TAG='"$(BUILD_TAG)"'

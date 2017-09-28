@@ -1,0 +1,12 @@
+diff -Naur u-boot-1.1.4/common/cmd_date.c u-boot-1.1.4-common/common/cmd_date.c
+--- u-boot-1.1.4/common/cmd_date.c	2006-04-28 10:27:01.413552683 -0400
++++ u-boot-1.1.4-common/common/cmd_date.c	2006-04-28 10:28:12.813593194 -0400
+@@ -40,7 +40,7 @@
+ 
+ int do_date (cmd_tbl_t *cmdtp, int flag, int argc, char *argv[])
+ {
+-	DECLARE_GLOBAL_DATA_PTR;
++//	DECLARE_GLOBAL_DATA_PTR;
+ 	struct rtc_time tm;
+ 	int rcode = 0;
+ 

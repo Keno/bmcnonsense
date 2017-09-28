@@ -1,0 +1,12 @@
+diff -Naur uboot/common/Makefile uboot.new/common/Makefile
+--- uboot/common/Makefile	2006-08-09 13:32:43.519833920 -0400
++++ uboot.new/common/Makefile	2006-08-09 13:06:33.843461000 -0400
+@@ -57,7 +57,7 @@
+ 
+ CPPFLAGS += -I..
+ 
+-all:	$(LIB) $(AOBJS)
++all:	$(LIB) $(OBJS)
+ 
+ $(LIB): .depend $(OBJS)
+ 	$(AR) crv $@ $(OBJS)

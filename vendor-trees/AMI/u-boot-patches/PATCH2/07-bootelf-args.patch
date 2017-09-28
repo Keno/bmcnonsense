@@ -1,0 +1,11 @@
+--- u-boot-1.1.4/common/cmd_elf.c	2005-12-16 11:39:27.000000000 -0500
++++ uboot/common/cmd_elf.c	2007-03-05 15:00:48.000000000 -0500
+@@ -317,7 +317,7 @@
+ 
+ /* ====================================================================== */
+ U_BOOT_CMD(
+-	bootelf,      2,      0,      do_bootelf,
++	bootelf,      128,      0,      do_bootelf,
+ 	"bootelf - Boot from an ELF image in memory\n",
+ 	" [address] - load address of ELF image.\n"
+ );

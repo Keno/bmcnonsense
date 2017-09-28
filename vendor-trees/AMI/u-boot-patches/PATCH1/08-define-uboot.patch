@@ -1,0 +1,11 @@
+diff -Naur u-boot-1.1.4.org/config.mk u-boot-1.1.4/config.mk
+--- u-boot-1.1.4.org/config.mk	2006-07-10 15:50:18.519228660 -0400
++++ u-boot-1.1.4/config.mk	2006-07-10 15:52:25.086374065 -0400
+@@ -119,6 +119,7 @@
+ gccincdir := $(shell $(CC) -print-file-name=include)
+ 
+ CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)		\
++	-D__UBOOT__			\
+ 	-D__KERNEL__ -DTEXT_BASE=$(TEXT_BASE)		\
+ 	-I$(TOPDIR)/include				\
+ 	-fno-builtin -ffreestanding -nostdinc -isystem	\

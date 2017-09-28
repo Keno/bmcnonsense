@@ -1,0 +1,10 @@
+--- linux-2.6.15.4/drivers/mtd/Makefile	2006-02-10 02:22:48.000000000 -0500
++++ linux-2.6.15.4.spi/drivers/mtd/Makefile	2007-02-21 09:43:13.000000000 -0500
+@@ -27,6 +27,6 @@
+ nftl-objs		:= nftlcore.o nftlmount.o
+ inftl-objs		:= inftlcore.o inftlmount.o
+ 
+-obj-y		+= chips/ maps/ devices/ nand/ onenand/
++obj-y		+= chips/ spichips/ maps/ devices/ nand/ onenand/
+ 
+ obj-$(CONFIG_MTD_UBI)		+= ubi/

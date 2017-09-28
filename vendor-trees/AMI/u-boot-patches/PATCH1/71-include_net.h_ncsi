@@ -1,0 +1,20 @@
+--- uboot.org/include/net.h	2007-08-02 11:56:13.000000000 -0400
++++ uboot/include/net.h	2007-08-02 23:35:07.000000000 -0400
+@@ -166,6 +166,7 @@
+ #define PROT_ARP	0x0806		/* IP ARP protocol		*/
+ #define PROT_RARP	0x8035		/* IP ARP protocol		*/
+ #define PROT_VLAN	0x8100		/* IEEE 802.1q protocol		*/
++#define PROT_NCSI	0x88F8		/* DMTP NCSI 1.0 protocol	*/
+ 
+ #define IPPROTO_ICMP	 1	/* Internet Control Message Protocol	*/
+ #define IPPROTO_UDP	17	/* User Datagram Protocol		*/
+@@ -338,7 +339,8 @@
+ 
+ //typedef enum { BOOTP, RARP, ARP, TFTP, DHCP, PING, DNS, NFS, CDP, NETCONS, SNTP } proto_t;
+ //AMI Extension - R2C Protocol
+-typedef enum { BOOTP, RARP, ARP, TFTP, DHCP, PING, DNS, NFS, CDP, NETCONS, SNTP, R2C } proto_t;
++//DMTF NCSI Support
++typedef enum { BOOTP, RARP, ARP, TFTP, DHCP, PING, DNS, NFS, CDP, NETCONS, SNTP, R2C, NCSI} proto_t;
+ 
+ /* from net/net.c */
+ extern char	BootFile[128];			/* Boot File name		*/

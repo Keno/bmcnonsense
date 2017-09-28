@@ -1,0 +1,22 @@
+diff -Naur u-boot-1.1.4/cpu/arm926ejs/config.mk u-boot-1.1.4-CPU/cpu/arm926ejs/config.mk
+--- u-boot-1.1.4/cpu/arm926ejs/config.mk	2005-12-16 11:39:27.000000000 -0500
++++ u-boot-1.1.4-CPU/cpu/arm926ejs/config.mk	2006-05-18 14:06:32.000000000 -0400
+@@ -22,7 +22,7 @@
+ #
+ 
+ PLATFORM_RELFLAGS += -fno-strict-aliasing  -fno-common -ffixed-r8 \
+-	-msoft-float
++	-mhard-float
+ 
+ PLATFORM_CPPFLAGS += -march=armv4
+ # =========================================================================
+@@ -30,5 +30,8 @@
+ # Supply options according to compiler version
+ #
+ # =========================================================================
+-PLATFORM_CPPFLAGS +=$(call cc-option,-mapcs-32,-mabi=apcs-gnu)
++# As of now my compiler does not accept abi=apcs-gnu.
++#
++#PLATFORM_CPPFLAGS +=$(call cc-option,-mapcs-32,-mabi=apcs-gnu)
++PLATFORM_CPPFLAGS +=$(call cc-option,-mapcs-32)
+ PLATFORM_RELFLAGS +=$(call cc-option,-mshort-load-bytes,$(call cc-option,-malignment-traps,))
