@@ -1,0 +1,134 @@
+Let's write ourselves a bootloader
+- U-Boot seems to be the default choice for ARM
+- Seems to follow the Linux device tree format (nice! Saves us some work, perhaps)
+- The AMI firmware has U-boot patches for WPCM450. Unfortunately based on a really
+  old version of u-boot, so not directly applicable. Still, can serve as documentation
+  given the lack of datasheet.
+- The PATCH5/6 directory seems to have the relevant files
+- The WPCM450 seems to be based on the ARM926EJ-S core. Good to know!
+- The 21-include_wpcm450_hwmap.h seem to have the physical memory layout:
+    #define WPCM_GCR_BASE                  0xB0000000
+    #define WPCM_CLK_BASE                  0xB0000200
+    #define WPCM_MC_BASE                   0xB0001000
+    #define WPCM_MAC1_BASE                 0xB0002000
+    #define WPCM_MAC2_BASE                 0xB0003000
+    #define WPCM_USB2_BASE                 0xB0005000
+    #define WPCM_USB1_BASE                 0xB0006000
+    #define WPCM_VCD_BASE                  0xB0010000
+    #define WPCM_UART0_BASE                0xB8000000
+    #define WPCM_UART1_BASE                0xB8000100
+    #define WPCM_PECI_BASE                 0xB8000200
+    #define WPCM_GFXI_BASE                 0xB8000300
+    #define WPCM_TIMER_BASE                0xB8001000
+    #define WPCM_AIC_BASE                  0xB8002000
+    #define WPCM_GPIO_BASE                 0xB8003000
+    #define WPCM_TACH0_BASE                0xB8004000
+    #define WPCM_TACH1_BASE                0xB8005000
+    #define WPCM_I2C_0_BASE                0xB8006000
+    #define WPCM_I2C_1_BASE                0xB8006100
+    #define WPCM_I2C_2_BASE                0xB8006200
+    #define WPCM_I2C_3_BASE                0xB8006300
+    #define WPCM_I2C_4_BASE                0xB8006400
+    #define WPCM_I2C_5_BASE                0xB8006500
+    #define WPCM_PWM_BASE                  0xB8007000
+    #define WPCM_KCS_BASE                  0xB8008000
+    #define WPCM_ADC_BASE                  0xB8009000
+    #define WPCM_AES_BASE                  0xB800B000
+    #define WPCM_FIU_BASE                  0xC8000000
+    #define WPCM_SHM_BASE                  0xC8001000
+- Let's see if we can identify the devices:
+    - GCR (seems to stand for Global Control Register). hwreg.h shows the following
+      device layout:
+            struct wpcm450_gcr {
+                u32 pdid;      /* 0x00 */
+                u32 pwron;     /* 0x04 */
+                u32 reserved;
+                u32 mfsel1;    /* 0x0C */
+                u32 mfsel2;    /* 0x10 */
+                u32 reserved2[9];
+                u32 spswc;     /* 0x38 */
+                u32 intcr;     /* 0x3C */
+                u32 reserved3[8]
+                u32 intcr2;    /* 0x60 */
+                u32 reserved4[41];
+                u32 etsr;      /* 0x108 */
+            };
+        - PDID seems to be processor ID/revision
+        - PWRON is a register that latches the logic levels of the memory bus pins at startup - this is actually pretty clever. The memory bus lines appear to be used
+        as configuration settings set in hardware external to the chip (I'm sure this
+        kind of thing is standard _ I still thought it was pretty clever to resue the
+        memory bus for this purpose).
+        - MFSEL1/MFSEL2 seem to control pinmuxing (which pin has which function, some pins can function as GPIO or some special defined feature)
+        - No idea about the rest
+    - CLK (Clock controller):
+        - Controls the clock, I sppose. Layout as follows:
+            struct wpcm450_clk {
+                u32 clken;
+                u32 clksel;
+                u32 clkdiv;
+                u32 pllcon0;
+                u32 pllcon1;
+                u32 pmcon;
+                u32 irqwakecon;
+                u32 irqwakeflag;
+                u32 ipsrst;
+            };
+    - MC (Memory controller):
+        - The sram_init.c function sets all hte registers based on the PWRON strap values. Probably just need to copy all of these.
+    - MAC1/MAC2:
+        - Ethernet (shared with the host/dedicated)
+        - Let's revisit these
+    - USB
+        - Well, USB. Also not cricitcal for a first attempt
+    - VCD
+        - No idea, something to do with intercepting video from the host maybe?
+    - UART0/UART1
+        - Serial ports. One of them is attached to the host for sol functionality.
+          The other is used as a debug uart. http://blog.devicenull.org/2014/06/06/x8sil-f-ipmi-serial-debug-port.html suggets it's routed externally on the X8SIL-F - can't find the same pins on the X8SIE-F. Probably means starting
+          on the X8SIL-F is a better idea.
+        - Have their own custom driver in the vendor tree, but seem to be just
+          standard ns16550a register interfaces
+    - PECI
+        - Reference to Intel PECI in https://www.nuvoton.com/resource-files/NCT6102D_NCT6106D_Datasheet_V1_0.pdf
+        - Platform Environment Control Interface
+        - Read thermal information from intel chips
+        - Not implemented in either the u-boot driver or firmware
+    - GFXI
+        - Not sure - grapics related?
+    - AIC
+        - Stands for advanced interrupt controller
+        - Register map seems to match that of the AIC in the NUC900:
+        http://www.nuvoton.com/resource-files/NUC910ABN_data_sheet_Ver_A4.pdf
+        - Winbond firmware (not AMI u-boot though) masks the WDT IRQ quite early
+    - GPIO controller
+        - Haven't looked into it, but should hopefully be fairly simple
+    - TACH/I2C, etc
+        - Interface with various sensors on the board
+    - ADC
+        - Analog digital converter
+        - Not sure these are used
+        - NUC900 has one - might be similar
+    - PWM
+        - Fan control. Show hopefully be simple
+    - KCS
+        - Keyboard Controller Style? Presumably used to interface with the host system. Not a priority for now
+    - FIU
+        - Flash interface unit. Seems to be the SPI controller of the firmware chip.
+          Used for writing the firmware chip.
+        - Vendor tree has a driver
+        - Reference to FIU in Chrome OS EC sources, so there's probably other Nuvoton
+          chips with this peripheral
+
+- Questions:
+    1. The bootloader seems to use 0x1ffc as local stack. That's
+       suspiciously close to 0x2000. Is there 8kiB of SRAM perhaps
+       that gets filled from flash on bootup? There's definitely more
+       than 8kiB mapped because the bootloader jumps to 0x10000 as the first
+       thing it does.
+    2. SDRAM gets mapped at address 0, but so is the ROM and (perhaps) the SRAM.
+       Can we disable those somehow.
+
+Maybe look at the SPI bus traffic to see which memory locations it's requesting?
+
+For 2, maybe we need to flip some bits in the PWRON register? It would make sense
+for that to control things. It's R/W on other Nuvoton chips.
