@@ -64,7 +64,7 @@ my progress, so that others may pick up where I stop.
 I have the following boards/BMCs that I'm willing
 to brick in the process.
 
-- Supermicro X8SIE-F (Nuvoton WPCM450)
+- Supermicro X8SIE-F (Nuvoton WPCM450) - Accidentally destroyed due to improper soldering
 - Supermicro X8SIL-F (Nuvoton WPCM450)
 - Supermicro X11SSH-F (Aspeed AST24000)
 - Lenovo RS160 (Aspeed AST2500)
