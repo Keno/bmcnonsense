@@ -1,0 +1,11 @@
+- ASpeed 2400 BMC - That's good already supported by openbmc/u-boot
+- flashrom needs a patch for this flash chip: https://review.coreboot.org/#/c/19855/
+- ISP seems to work fine - no soldering required :)
+- No identifiable debug serial port on the board - suspicious arrangement
+  of pins near COM1, but no signal discernable.
+- Well, since the AST2400 is supported, maybe just try flashing u-boot
+  and see what happens.
+- Not much luck. BMC ethernet port leds do light up with cable plugged in,
+  but no signals.
+- Also tried flashing full OpenBMC distro - same behavior
+- An early serial port would be nice :|
