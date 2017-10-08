@@ -4,7 +4,7 @@ Last time, we identified serial ports on the X8SIE-F and X8SIL-F boards (both of
 
 With a quick soldering job, I was able to hook this up to my trusty beaglebone
 
-![hooked up](images/x11sshf-1.jpg)
+![hooked up](images/x11sshf-2.jpg)
 
 and was able to capture the following output:
 
