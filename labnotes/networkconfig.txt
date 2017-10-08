@@ -1,0 +1,23 @@
+# Network config
+
+# To SSH to the beaglebone:
+ssh root@192.168.7.2
+
+# Make eth0 have a static IP
+iface eth0 inet static
+   address 192.168.8.1
+   netmask 255.255.255.0
+
+# Setup a DHCP server on eth0 (On the beagleboard)
+
+brctl addbr thebridge
+brctl addif thebridge eth0
+ifconfig thebridge 192.168.7.2
+brctl addif thebridge usb0
+sudo service isc-dhcp-server start
+ip addr flush dev usb0
+route add default gw 192.168.7.1 thebridge
+
+# On mac
+sudo sysctl net.inet.ip.forwarding=1
+echo "nat on en0 from en9:network to any -> (en0)" | sudo pfctl -f - -e
