@@ -30,7 +30,7 @@ The whole setup looked like this:
 ![BBBSPI](images/BBBSPI.jpg)
 
 Those following along closely may have noticed that I'm
-using the aligator clips from the external programmer again (late addendum: at 3.6V - average power consumption around 330mA).
+using the aligator clips from the external programmer again (late addendum: at 3.6V - average power consumption around 330mA; even later addendum: these are the set point of the power supply the actual (multimeter measured) value on the chip is closer to 3V).
 In this case, this is not to hold the BMC in reset, but simply
 because I wanted to avoid stressing the BBB's voltage regulator.
 The motherboard takes about 400mA, which while not a huge number
